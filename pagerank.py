@@ -48,7 +48,7 @@ def crawl(directory):
     return pages
 
 
-def transition_model(corpus, page, damping_factor):
+def transition_model(corpus, page, damping_factor) -> dict[str, float]:
     """
     Return a probability distribution over which page to visit next,
     given a current page.
@@ -57,7 +57,23 @@ def transition_model(corpus, page, damping_factor):
     linked to by `page`. With probability `1 - damping_factor`, choose
     a link at random chosen from all pages in the corpus.
     """
-    raise NotImplementedError
+
+    probability_of_random_page_selection = (1.0 - damping_factor) / len(corpus.keys())
+
+    probability_dict: dict[str, float] = {key:probability_of_random_page_selection \
+                                          for key in corpus.keys()}
+    # assumes that all pages are keys in the corpus - i.e. there are no
+    # pages in the values that are not keys in the corpus
+
+    pages_linked_to = corpus[page]
+    for p in pages_linked_to:
+        probability_dict[p] += damping_factor / len(pages_linked_to)
+
+    # remove floating point rounding errors
+    for k, p in probability_dict.items():
+        probability_dict[k] = round(p, 6)
+
+    return probability_dict
 
 
 def sample_pagerank(corpus, damping_factor, n):
