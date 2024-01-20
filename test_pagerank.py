@@ -12,14 +12,15 @@ def test_transition_model():
 
 
 # the actual results will depend on the random number choice to start with
-# def test_sample_page_rank():
+def test_sample_page_rank():
 
-#     corpus = {"1.html": {"2.html", "3.html"}, "2.html": {"3.html"}, "3.html": {"2.html"}}
-#     damping_factor = 0.85
-#     n = 10000
-#     result = sample_pagerank(corpus, damping_factor, n)
+    corpus = {"1.html": {"2.html", "3.html"}, "2.html": {"3.html"}, "3.html": {"2.html"}}
+    damping_factor = 0.85
+    n = 10000
+    result = sample_pagerank(corpus, damping_factor, n)
 
-#     assert result == {"1.html": 0.05, "2.html": 0.475, "3.html": 0.475}
+    assert result == {"1.html": 0.05, "2.html": 0.475, "3.html": 0.475}
+
 
 
 

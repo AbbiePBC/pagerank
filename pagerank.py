@@ -1,3 +1,4 @@
+import copy
 import os
 import random
 import re
@@ -106,29 +107,34 @@ def sample_pagerank(corpus, damping_factor, n):
 
 def calc_probability(corpus, page, damping_factor, pagerank):
 
-    return (1 - damping_factor) / len(corpus.keys()) + \
-                        damping_factor * sum([pagerank[link] / len(corpus[link]) \
-                                                for link in corpus[page]])
+    num_pages = len(corpus.keys())
+
+    # with probability 1 - damping_factor, choose a link at random
+    probability_of_random_page_selection = (1.0 - damping_factor) / num_pages
+
+    # with probability damping_factor, follow a link from i to p
+    probability_of_non_random_page_selection = damping_factor * \
+                                                  sum([pagerank[i] / len(corpus[i]) \
+                                                         for i in corpus.keys() if page in corpus[i]])
+
+    return probability_of_random_page_selection + probability_of_non_random_page_selection
 
 
 
+def iterate_probability(corpus, damping_factor, pagerank):
 
-def iterate_probability(corpus, page, damping_factor, pagerank):
+    new_pagerank = copy.deepcopy(pagerank)
 
-    not_converged = True
-    new_pagerank = {p:0.0 for p in pagerank.keys()}
-    while not_converged:
-        not_converged = False
+    while True:
+        max_diff = 0
+        for page in corpus.keys():
+            new_pagerank[page] = calc_probability(corpus, page, damping_factor, new_pagerank)
+            max_diff = max(max_diff, abs(new_pagerank[page] - pagerank[page]))
 
-        for page, links in corpus.items():
-            if len(links) == 0:
-                new_pagerank[page] = 1 / len(corpus.keys())
-            else:
-                new_pagerank[page] = calc_probability(corpus, page, damping_factor, new_pagerank)
-            if abs(new_pagerank[page] - pagerank[page]) > 0.001:
-                not_converged = True
+        if max_diff < 0.001:
+            break
 
-        pagerank = new_pagerank
+        pagerank = copy.deepcopy(new_pagerank)
     return pagerank
 
 
@@ -143,10 +149,7 @@ def iterate_pagerank(corpus, damping_factor):
     """
     num_pages = len(corpus.keys())
     pagerank = {page:1/num_pages for page in corpus.keys()}
-
-    page = random.choice(list(corpus.keys())) # start at random page
-
-    pagerank = iterate_probability(corpus, page, damping_factor, pagerank)
+    pagerank = iterate_probability(corpus, damping_factor, pagerank)
 
     total = sum(pagerank.values())
     for p, v in pagerank.items():
